@@ -7,6 +7,10 @@ import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -16,19 +20,19 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class UserControllerTest {
-
+    @InjectMocks
     private UserController userController;
-    private UserRepository userRepository = mock(UserRepository.class);
-    private CartRepository cartRepository = mock(CartRepository.class);
-    private BCryptPasswordEncoder encoder = mock(BCryptPasswordEncoder.class);
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private CartRepository cartRepository;
+    @Mock
+    private BCryptPasswordEncoder encoder;
 
     @Before
     public void setUp() {
-        userController = new UserController();
-        TestUtils.injectObjects(userController, "userRepository", userRepository);
-        TestUtils.injectObjects(userController, "cartRepository", cartRepository);
-        TestUtils.injectObjects(userController, "bCryptPasswordEncoder", encoder);
     }
 
     @Test
@@ -51,7 +55,6 @@ public class UserControllerTest {
 
     @Test
     public void createUserWithInvalidLength() {
-        when(encoder.encode("testPassword")).thenReturn("IsHashed");
         CreateUserRequest r = new CreateUserRequest();
         r.setUsername("test");
         r.setPassword("test");
@@ -64,7 +67,6 @@ public class UserControllerTest {
 
     @Test
     public void createUserWithPasswordNotMatch() {
-        when(encoder.encode("testPassword")).thenReturn("IsHashed");
         CreateUserRequest r = new CreateUserRequest();
         r.setUsername("test");
         r.setPassword("test1");
