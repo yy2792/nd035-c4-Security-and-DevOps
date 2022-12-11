@@ -1,6 +1,7 @@
-package com.example.demo.controllers;
+package com.example.demo;
 
 import com.example.demo.*;
+import com.example.demo.controllers.ItemController;
 import com.example.demo.model.persistence.*;
 import com.example.demo.model.persistence.repositories.*;
 import org.junit.*;
@@ -24,18 +25,18 @@ public class ItemControllerTest {
     private ItemRepository itemRepository;
 
     @Before
-    public void setUp () {
+    public void setUp() {
     }
 
     @Test
-    public void test_get_all_items () {
+    public void test_get_all_items() {
         ResponseEntity<List<Item>> items = itemController.getItems();
         Assertions.assertNotNull(items);
         Assertions.assertEquals(200, items.getStatusCodeValue());
     }
 
     @Test
-    public void test_get_all_items_by_id () {
+    public void test_get_all_items_by_id() {
         Item itemMock = new Item();
         itemMock.setId(1l);
         itemMock.setPrice(BigDecimal.valueOf(9.0));
@@ -47,7 +48,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test_get_all_items_by_name () {
+    public void test_get_all_items_by_name() {
         List<Item> itemMocks = new ArrayList<>();
         itemMocks.add(new Item());
         when(itemRepository.findByName("Iphone 13")).thenReturn(itemMocks);
