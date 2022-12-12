@@ -60,18 +60,24 @@ public class CartController {
 	
 	@PostMapping("/removeFromCart")
 	public ResponseEntity<Cart> removeFromcart(@RequestBody ModifyCartRequest request) {
+		logger.info("CartController: removeFromCart execution started..");
+		logger.info("CartController: removeFromCart execution payload {}", Mapper.mapToJsonString(request));
+
 		User user = userRepository.findByUsername(request.getUsername());
 		if(user == null) {
+			logger.error("CartController: removeFromCart execution failed for {}", Mapper.mapToJsonString(request));
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 		Optional<Item> item = itemRepository.findById(request.getItemId());
 		if(!item.isPresent()) {
+			logger.error("CartController: removeFromCart execution failed for {}", Mapper.mapToJsonString(request));
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 		Cart cart = user.getCart();
 		IntStream.range(0, request.getQuantity())
 			.forEach(i -> cart.removeItem(item.get()));
 		cartRepository.save(cart);
+		logger.info("CartController: removeFromCart execution succeeded for {}", Mapper.mapToJsonString(request));
 		return ResponseEntity.ok(cart);
 	}
 		
