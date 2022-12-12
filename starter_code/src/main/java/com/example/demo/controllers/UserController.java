@@ -36,13 +36,21 @@ public class UserController {
 	
 	@GetMapping("/{username}")
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
+		logger.info("UserController: find user {}..", username);
 		User user = userRepository.findByUsername(username);
-		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
+		if (user == null) {
+			logger.error("UserController: cannot find user {}", username);
+			return ResponseEntity.notFound().build();
+		}
+		else {
+			logger.info("UserController: found user {}..", username);
+			return ResponseEntity.ok(user);
+		}
 	}
 	
 	@PostMapping("/create")
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
-		logger.info("UserController: creating user {}..", createUserRequest.getUsername());
+		logger.info("UserController: create user {}..", createUserRequest.getUsername());
 
 		User user = new User();
 		user.setUsername(createUserRequest.getUsername());
@@ -53,12 +61,12 @@ public class UserController {
 				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())){
 			//System.out.println("Error - Either length is less than 7 or pass and conf pass do not match. Unable to create ",
 			//		createUserRequest.getUsername());
-			logger.error("UserController: creating user {} failed!", createUserRequest.getUsername());
+			logger.error("UserController: create user {} failed!", createUserRequest.getUsername());
 			return ResponseEntity.badRequest().build();
 		}
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		userRepository.save(user);
-		logger.info("UserController: creating user {} succeeded..", createUserRequest.getUsername());
+		logger.info("UserController: create user {} succeeded..", createUserRequest.getUsername());
 		return ResponseEntity.ok(user);
 	}
 	
