@@ -3,6 +3,9 @@ package com.example.demo.controllers;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import com.example.demo.util.Mapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,8 @@ import com.example.demo.model.requests.ModifyCartRequest;
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
+
+	private static final Logger logger = LogManager.getLogger(CartController.class);
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -34,6 +39,8 @@ public class CartController {
 	
 	@PostMapping("/addToCart")
 	public ResponseEntity<Cart> addTocart(@RequestBody ModifyCartRequest request) {
+		logger.info("CartController: addTocart execution started..");
+		logger.info("CartController: addTocart execution payload {}", Mapper.mapToJsonString(request));
 		User user = userRepository.findByUsername(request.getUsername());
 		if(user == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -46,6 +53,8 @@ public class CartController {
 		IntStream.range(0, request.getQuantity())
 			.forEach(i -> cart.addItem(item.get()));
 		cartRepository.save(cart);
+		logger.info("CartController: addTocart execution response {}", Mapper.mapToJsonString(cart));
+		logger.info("CartController: addTocart execution ended..");
 		return ResponseEntity.ok(cart);
 	}
 	
