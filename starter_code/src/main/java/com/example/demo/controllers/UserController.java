@@ -1,32 +1,33 @@
 package com.example.demo.controllers;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.repositories.CartRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
+import com.example.demo.util.Mapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import com.splunk.logging.*;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-	
+
+	private static final Logger logger = LogManager.getLogger(UserController.class);
+
 	@Autowired
 	private UserRepository userRepository;
 	
 	@Autowired
 	private CartRepository cartRepository;
+
+	@Autowired
+	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
@@ -35,18 +36,37 @@ public class UserController {
 	
 	@GetMapping("/{username}")
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
+		logger.info("UserController: find user {}..", username);
 		User user = userRepository.findByUsername(username);
-		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
+		if (user == null) {
+			logger.error("UserController: cannot find user {}", username);
+			return ResponseEntity.notFound().build();
+		}
+		else {
+			logger.info("UserController: found user {}..", username);
+			return ResponseEntity.ok(user);
+		}
 	}
 	
 	@PostMapping("/create")
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
+		logger.info("UserController: create user {}..", createUserRequest.getUsername());
+
 		User user = new User();
 		user.setUsername(createUserRequest.getUsername());
 		Cart cart = new Cart();
 		cartRepository.save(cart);
 		user.setCart(cart);
+		if(createUserRequest.getPassword().length()<7 ||
+				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())){
+			//System.out.println("Error - Either length is less than 7 or pass and conf pass do not match. Unable to create ",
+			//		createUserRequest.getUsername());
+			logger.error("UserController: create user {} failed!", createUserRequest.getUsername());
+			return ResponseEntity.badRequest().build();
+		}
+		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		userRepository.save(user);
+		logger.info("UserController: create user {} succeeded..", createUserRequest.getUsername());
 		return ResponseEntity.ok(user);
 	}
 	
